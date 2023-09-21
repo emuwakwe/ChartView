@@ -16,7 +16,10 @@ public struct LineView: View {
     public var darkModeStyle: ChartStyle
     public var valueSpecifier: String
     public var legendSpecifier: String
-    
+    public var xAxisData: [CustomStringConvertible]?
+
+
+
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var showLegend = false
     @State private var dragLocation:CGPoint = .zero
@@ -31,7 +34,9 @@ public struct LineView: View {
                 legend: String? = nil,
                 style: ChartStyle = Styles.lineChartStyleOne,
                 valueSpecifier: String? = "%.1f",
-                legendSpecifier: String? = "%.2f") {
+                legendSpecifier: String? = "%.2f",
+                xAxisData: [CustomStringConvertible]? = nil,
+) {
         
         self.data = ChartData(points: data)
         self.title = title
@@ -40,6 +45,7 @@ public struct LineView: View {
         self.valueSpecifier = valueSpecifier!
         self.legendSpecifier = legendSpecifier!
         self.darkModeStyle = style.darkModeStyle != nil ? style.darkModeStyle! : Styles.lineViewDarkMode
+        self.xAxisData = xAxisData
     }
     
     public var body: some View {
@@ -86,7 +92,8 @@ public struct LineView: View {
                     }
                     .frame(width: geometry.frame(in: .local).size.width, height: 240)
                     .offset(x: 0, y: 40 )
-                    MagnifierRect(currentNumber: self.$currentDataNumber, valueSpecifier: self.valueSpecifier)
+                    // MagnifierRect(currentNumber: self.$currentDataNumber, valueSpecifier: self.valueSpecifier)
+                                            MagnifierRect(currentNumber: self.$currentDataNumber, currentXValue: self.$currentXValue, valueSpecifier: self.valueSpecifier)
                         .opacity(self.opacity)
                         .offset(x: self.dragLocation.x - geometry.frame(in: .local).size.width/2, y: 36)
                 }
@@ -116,6 +123,11 @@ public struct LineView: View {
         let index:Int = Int(floor((toPoint.x-15)/stepWidth))
         if (index >= 0 && index < points.count){
             self.currentDataNumber = points[index]
+            if let xAxisData = xAxisData,
+               (index >= 0 && index < xAxisData.count)
+            {
+                self.currentXValue = xAxisData[index]
+            }
             return CGPoint(x: CGFloat(index)*stepWidth, y: CGFloat(points[index])*stepHeight)
         }
         return .zero
